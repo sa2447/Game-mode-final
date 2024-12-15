@@ -959,6 +959,10 @@ struct gclient_s
 
 	edict_t		*chase_target;		// player we are chasing
 	qboolean	update_chase;		// need to update chase info?
+
+	int spazer_shots;
+	int plasma_shots;
+	float suit_check;
 };
 
 

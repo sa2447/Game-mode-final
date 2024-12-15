@@ -63,7 +63,7 @@ void PlayerNoise(edict_t *who, vec3_t where, int type)
 	{
 		if (who->client->silencer_shots)
 		{
-			who->client->silencer_shots--;
+			who->client->silencer_shots++;
 			return;
 		}
 	}

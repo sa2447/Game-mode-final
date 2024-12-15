@@ -22,9 +22,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "g_local.h"
 #include "m_player.h"
 
-
 static qboolean	is_quad;
 static byte		is_silenced;
+static byte		is_spazer;
+static byte		is_plasma;
 
 
 void weapon_grenade_fire (edict_t *ent, qboolean held);
@@ -63,7 +64,7 @@ void PlayerNoise(edict_t *who, vec3_t where, int type)
 	{
 		if (who->client->silencer_shots)
 		{
-			who->client->silencer_shots--;
+			who->client->silencer_shots;
 			return;
 		}
 	}
@@ -296,6 +297,17 @@ void Think_Weapon (edict_t *ent)
 			is_silenced = MZ_SILENCED;
 		else
 			is_silenced = 0;
+
+		if (ent->client->spazer_shots)
+			is_spazer = MZ_SPAZER;
+		else
+			is_spazer = 0;
+
+		if (ent->client->plasma_shots)
+			is_plasma = MZ_PLASMA;
+		else
+			is_plasma = 0;
+
 		ent->client->pers.weapon->weaponthink (ent);
 	}
 }
@@ -819,15 +831,32 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	vec3_t	start;
 	vec3_t	offset;
 
-	if (is_quad)
-		damage *= 4;
-	AngleVectors (ent->client->v_angle, forward, right, NULL);
-	VectorSet(offset, 24, 8, ent->viewheight-8);
-	VectorAdd (offset, g_offset, offset);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
 
-	VectorScale (forward, -2, ent->client->kick_origin);
+	AngleVectors(ent->client->v_angle, forward, right, NULL);
+	VectorSet(offset, 24, 8, ent->viewheight - 8);
+	VectorAdd(offset, g_offset, offset);
+	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+
+	VectorScale(forward, -2, ent->client->kick_origin);
 	ent->client->kick_angles[0] = -1;
+
+	if (is_quad) {
+		damage *= 4;
+
+		fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
+
+		start[0] += right[0] * 6;
+		start[1] += right[1] * 6;
+		start[2] += right[2] * 6;
+
+		fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
+
+		start[0] -= right[0] * 12;
+		start[1] -= right[1] * 12;
+		start[2] -= right[2] * 12;
+
+		fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
+	}
 
 	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
 
@@ -1430,5 +1459,114 @@ void Weapon_BFG (edict_t *ent)
 	Weapon_Generic (ent, 8, 32, 55, 58, pause_frames, fire_frames, weapon_bfg_fire);
 }
 
+/*
+=======================================================================
 
-//======================================================================
+Start of Modded Weapons
+
+=======================================================================
+*/
+
+/*
+
+Metroid_Armcannon
+
+*/
+
+void ArmCannon_Fire(edict_t* ent, vec3_t g_offset, int damage, qboolean hyper, int effect)
+{
+	vec3_t	forward, right;
+	vec3_t	start;
+	vec3_t	offset;
+
+
+	AngleVectors(ent->client->v_angle, forward, right, NULL);
+	VectorSet(offset, 24, 8, ent->viewheight - 8);
+	VectorAdd(offset, g_offset, offset);
+	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+
+	VectorScale(forward, -2, ent->client->kick_origin);
+	ent->client->kick_angles[0] = -1;
+
+	if (is_quad)
+		damage *= 4;
+
+	if (is_spazer && !is_plasma) {
+		
+		fire_armcannon(ent, start, forward, damage, 1000, effect, hyper);
+
+		start[0] += right[0] * 6;
+		start[1] += right[1] * 6;
+		start[2] += right[2] * 6;
+
+		fire_armcannon(ent, start, forward, damage, 1000, effect, hyper);
+
+		start[0] -= right[0] * 12;
+		start[1] -= right[1] * 12;
+		start[2] -= right[2] * 12;
+
+		fire_armcannon(ent, start, forward, damage, 1000, effect, hyper);
+		
+	}
+	if (is_plasma && !is_spazer) {
+
+		fire_plasma(ent, start, forward, 100, 1);
+
+	}
+	if (is_plasma && is_spazer) {
+		fire_plasma(ent, start, forward, 100, 1);
+
+		start[0] += right[0] * 6;
+		start[1] += right[1] * 6;
+		start[2] += right[2] * 6;
+
+		fire_plasma(ent, start, forward, 100, 1);
+
+		start[0] -= right[0] * 12;
+		start[1] -= right[1] * 12;
+		start[2] -= right[2] * 12;
+
+		fire_plasma(ent, start, forward, 100, 1);
+
+	}
+	if(!is_plasma && !is_spazer)
+	{
+
+		fire_armcannon(ent, start, forward, damage, 1000, effect, hyper);
+
+	}
+
+	
+
+	// send muzzle flash
+	gi.WriteByte(svc_muzzleflash);
+	gi.WriteShort(ent - g_edicts);
+	if (hyper)
+		gi.WriteByte(MZ_HYPERBLASTER | is_silenced);
+	else
+		gi.WriteByte(MZ_BLASTER | is_silenced);
+	gi.multicast(ent->s.origin, MULTICAST_PVS);
+
+	PlayerNoise(ent, start, PNOISE_WEAPON);
+}
+
+
+void Weapon_ArmCannon_Fire(edict_t* ent)
+{
+	int		damage;
+
+	if (deathmatch->value)
+		damage = 40;
+	else
+		damage = 30;
+	ArmCannon_Fire(ent, vec3_origin, damage, false, EF_BLASTER);
+	ent->client->ps.gunframe++;
+}
+
+void Weapon_ArmCannon(edict_t* ent)
+{
+	static int	pause_frames[] = { 19, 32, 0 };
+	static int	fire_frames[] = { 5, 0 };
+
+	Weapon_Generic(ent, 4, 8, 52, 55, pause_frames, fire_frames, Weapon_ArmCannon_Fire);
+}

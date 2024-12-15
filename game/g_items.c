@@ -36,6 +36,8 @@ void Weapon_GrenadeLauncher (edict_t *ent);
 void Weapon_Railgun (edict_t *ent);
 void Weapon_BFG (edict_t *ent);
 
+void Weapon_ArmCannon(edict_t* ent);
+
 gitem_armor_t jacketarmor_info	= { 25,  50, .30, .00, ARMOR_JACKET};
 gitem_armor_t combatarmor_info	= { 50, 100, .60, .30, ARMOR_COMBAT};
 gitem_armor_t bodyarmor_info	= {100, 200, .80, .60, ARMOR_BODY};
@@ -375,6 +377,34 @@ void Use_Breather (edict_t *ent, gitem_t *item)
 
 //	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
 }
+//======================================================================
+/*
+
+Metroid Powerups
+
+*/
+void Use_Spazer(edict_t* ent, gitem_t* item)
+{
+	ent->client->pers.inventory[ITEM_INDEX(item)]--;
+	ValidateSelectedItem(ent);
+	ent->client->spazer_shots += 1;
+}
+
+void Use_Plasma(edict_t* ent, gitem_t* item)
+{
+	ent->client->pers.inventory[ITEM_INDEX(item)]--;
+	ValidateSelectedItem(ent);
+	ent->client->plasma_shots += 1;
+}
+
+void Use_Gravsuit(edict_t* ent, gitem_t* item)
+{
+	ent->client->pers.inventory[ITEM_INDEX(item)]--;
+	ValidateSelectedItem(ent);
+
+	ent->client->suit_check += 1;
+}
+
 
 //======================================================================
 
@@ -1451,29 +1481,29 @@ always owned, never in the world
 */
 	{
 		"weapon_rocketlauncher",
-		Pickup_Weapon,
-		Use_Weapon,
-		Drop_Weapon,
-		Weapon_RocketLauncher,
-		"misc/w_pkup.wav",
-		"models/weapons/g_rocket/tris.md2", EF_ROTATE,
-		"models/weapons/v_rocket/tris.md2",
-/* icon */		"w_rlauncher",
-/* pickup */	"Rocket Launcher",
-		0,
-		1,
-		"Rockets",
-		IT_WEAPON|IT_STAY_COOP,
-		WEAP_ROCKETLAUNCHER,
-		NULL,
-		0,
-/* precache */ "models/objects/rocket/tris.md2 weapons/rockfly.wav weapons/rocklf1a.wav weapons/rocklr1b.wav models/objects/debris2/tris.md2"
+			Pickup_Weapon,
+			Use_Weapon,
+			Drop_Weapon,
+			Weapon_RocketLauncher,
+			"misc/w_pkup.wav",
+			"models/weapons/g_rocket/tris.md2", EF_ROTATE,
+			"models/weapons/v_rocket/tris.md2",
+			/* icon */		"w_rlauncher",
+			/* pickup */	"Rocket Launcher",
+			0,
+			1,
+			"Rockets",
+			IT_WEAPON | IT_STAY_COOP,
+			WEAP_ROCKETLAUNCHER,
+			NULL,
+			0,
+			/* precache */ "models/objects/rocket/tris.md2 weapons/rockfly.wav weapons/rocklf1a.wav weapons/rocklr1b.wav models/objects/debris2/tris.md2"
 	},
 
-/*QUAKED weapon_hyperblaster (.3 .3 1) (-16 -16 -16) (16 16 16)
-*/
+		/*QUAKED weapon_hyperblaster (.3 .3 1) (-16 -16 -16) (16 16 16)
+		*/
 	{
-		"weapon_hyperblaster", 
+		"weapon_hyperblaster",
 		Pickup_Weapon,
 		Use_Weapon,
 		Drop_Weapon,
@@ -1481,22 +1511,22 @@ always owned, never in the world
 		"misc/w_pkup.wav",
 		"models/weapons/g_hyperb/tris.md2", EF_ROTATE,
 		"models/weapons/v_hyperb/tris.md2",
-/* icon */		"w_hyperblaster",
-/* pickup */	"HyperBlaster",
-		0,
-		1,
-		"Cells",
-		IT_WEAPON|IT_STAY_COOP,
-		WEAP_HYPERBLASTER,
-		NULL,
-		0,
-/* precache */ "weapons/hyprbu1a.wav weapons/hyprbl1a.wav weapons/hyprbf1a.wav weapons/hyprbd1a.wav misc/lasfly.wav"
+		/* icon */		"w_hyperblaster",
+		/* pickup */	"HyperBlaster",
+				0,
+				1,
+				"Cells",
+				IT_WEAPON | IT_STAY_COOP,
+				WEAP_HYPERBLASTER,
+				NULL,
+				0,
+				/* precache */ "weapons/hyprbu1a.wav weapons/hyprbl1a.wav weapons/hyprbf1a.wav weapons/hyprbd1a.wav misc/lasfly.wav"
 	},
 
-/*QUAKED weapon_railgun (.3 .3 1) (-16 -16 -16) (16 16 16)
-*/
+		/*QUAKED weapon_railgun (.3 .3 1) (-16 -16 -16) (16 16 16)
+		*/
 	{
-		"weapon_railgun", 
+		"weapon_railgun",
 		Pickup_Weapon,
 		Use_Weapon,
 		Drop_Weapon,
@@ -1504,20 +1534,20 @@ always owned, never in the world
 		"misc/w_pkup.wav",
 		"models/weapons/g_rail/tris.md2", EF_ROTATE,
 		"models/weapons/v_rail/tris.md2",
-/* icon */		"w_railgun",
-/* pickup */	"Railgun",
-		0,
-		1,
-		"Slugs",
-		IT_WEAPON|IT_STAY_COOP,
-		WEAP_RAILGUN,
-		NULL,
-		0,
-/* precache */ "weapons/rg_hum.wav"
+		/* icon */		"w_railgun",
+		/* pickup */	"Railgun",
+				0,
+				1,
+				"Slugs",
+				IT_WEAPON | IT_STAY_COOP,
+				WEAP_RAILGUN,
+				NULL,
+				0,
+				/* precache */ "weapons/rg_hum.wav"
 	},
 
-/*QUAKED weapon_bfg (.3 .3 1) (-16 -16 -16) (16 16 16)
-*/
+		/*QUAKED weapon_bfg (.3 .3 1) (-16 -16 -16) (16 16 16)
+		*/
 	{
 		"weapon_bfg",
 		Pickup_Weapon,
@@ -1527,17 +1557,50 @@ always owned, never in the world
 		"misc/w_pkup.wav",
 		"models/weapons/g_bfg/tris.md2", EF_ROTATE,
 		"models/weapons/v_bfg/tris.md2",
-/* icon */		"w_bfg",
-/* pickup */	"BFG10K",
+		/* icon */		"w_bfg",
+		/* pickup */	"BFG10K",
+				0,
+				50,
+				"Cells",
+				IT_WEAPON | IT_STAY_COOP,
+				WEAP_BFG,
+				NULL,
+				0,
+				/* precache */ "sprites/s_bfg1.sp2 sprites/s_bfg2.sp2 sprites/s_bfg3.sp2 weapons/bfg__f1y.wav weapons/bfg__l1a.wav weapons/bfg__x1b.wav weapons/bfg_hum.wav"
+	},
+
+		//
+		//METROID WEAPONS
+		//
+
+		/*
+		weapon_armcannon
+		Upgradable arm cannon intended to be the main weapon
+		*/
+
+	{
+		"weapon_armcannon",
+		NULL,
+		Use_Weapon,
+		NULL,
+		Weapon_ArmCannon,
+		"misc/w_pkup.wav",
+		"models/weapons/g_rail/tris.md2", EF_ROTATE,
+		"models/weapons/v_rail/tris.md2",
+		/* icon */		"w_railgun",
+		/* pickup */	"ArmCannon",
 		0,
-		50,
-		"Cells",
-		IT_WEAPON|IT_STAY_COOP,
-		WEAP_BFG,
+		0,
+		NULL,
+		IT_WEAPON,
 		NULL,
 		0,
-/* precache */ "sprites/s_bfg1.sp2 sprites/s_bfg2.sp2 sprites/s_bfg3.sp2 weapons/bfg__f1y.wav weapons/bfg__l1a.wav weapons/bfg__x1b.wav weapons/bfg_hum.wav"
+		"weapons/blastf1a.wav misc/lasfly.wav"
 	},
+
+
+
+	
 
 	//
 	// AMMO ITEMS
@@ -1776,6 +1839,75 @@ always owned, never in the world
 		0,
 /* precache */ "items/airout.wav"
 	},
+
+	/*
+
+Metroid Powerups
+
+*/
+{
+		"item_spazer",
+		Pickup_Powerup,
+		Use_Spazer,
+		Drop_General,
+		NULL,
+		"items/pkup.wav",
+		"models/items/quaddama/tris.md2", EF_ROTATE,
+		NULL,
+		/* icon */		"p_quad",
+		/* pickup */	"Spazer Beam",
+		/* width */		2,
+		60,
+		NULL,
+		IT_POWERUP,
+		0,
+		NULL,
+		0,
+		/* precache */ "items/damage.wav items/damage2.wav items/damage3.wav"
+},
+
+{
+		"item_plasma",
+		Pickup_Powerup,
+		Use_Plasma,
+		Drop_General,
+		NULL,
+		"items/pkup.wav",
+		"models/items/quaddama/tris.md2", EF_ROTATE,
+		NULL,
+		/* icon */		"p_quad",
+		/* pickup */	"Plasma Beam",
+		/* width */		2,
+		60,
+		NULL,
+		IT_POWERUP,
+		0,
+		NULL,
+		0,
+		/* precache */ "items/damage.wav items/damage2.wav items/damage3.wav"
+},
+
+
+{
+		"item_gravsuit",
+		Pickup_Powerup,
+		Use_Gravsuit,
+		Drop_General,
+		NULL,
+		"items/pkup.wav",
+		"models/items/enviro/tris.md2", EF_ROTATE,
+		NULL,
+		/* icon */		"p_envirosuit",
+		/* pickup */	"Gravity Suit",
+		/* width */		2,
+				60,
+				NULL,
+				IT_STAY_COOP | IT_POWERUP,
+				0,
+				NULL,
+				0,
+				/* precache */ "items/airout.wav"
+},
 
 /*QUAKED item_ancient_head (.3 .3 1) (-16 -16 -16) (16 16 16)
 Special item that gives +2 to maximum health

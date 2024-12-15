@@ -580,6 +580,7 @@ void P_WorldEffects (void)
 {
 	qboolean	breather;
 	qboolean	envirosuit;
+	qboolean	gravsuit;
 	int			waterlevel, old_waterlevel;
 
 	if (current_player->movetype == MOVETYPE_NOCLIP)
@@ -594,6 +595,7 @@ void P_WorldEffects (void)
 
 	breather = current_client->breather_framenum > level.framenum;
 	envirosuit = current_client->enviro_framenum > level.framenum;
+	gravsuit = current_client->suit_check > 0;
 
 	//
 	// if just entered a water volume, play a sound
@@ -650,6 +652,12 @@ void P_WorldEffects (void)
 	//
 	// check for drowning
 	//
+	if (gravsuit)
+	{
+		current_player->air_finished = level.time + 12;	// don't need air
+		return;
+	}
+
 	if (waterlevel == 3)
 	{
 		// breather or envirosuit give air
@@ -720,6 +728,9 @@ void P_WorldEffects (void)
 				current_player->pain_debounce_time = level.time + 1;
 			}
 
+			if (gravsuit)
+				T_Damage(current_player, world, world, vec3_origin, current_player->s.origin, vec3_origin, 0, 0, 0, MOD_LAVA);
+
 			if (envirosuit)	// take 1/3 damage with envirosuit
 				T_Damage (current_player, world, world, vec3_origin, current_player->s.origin, vec3_origin, 1*waterlevel, 0, 0, MOD_LAVA);
 			else
@@ -731,6 +742,10 @@ void P_WorldEffects (void)
 			if (!envirosuit)
 			{	// no damage from slime with envirosuit
 				T_Damage (current_player, world, world, vec3_origin, current_player->s.origin, vec3_origin, 1*waterlevel, 0, 0, MOD_SLIME);
+			}
+			if(!gravsuit)
+			{	// no damage from slime with envirosuit
+				T_Damage(current_player, world, world, vec3_origin, current_player->s.origin, vec3_origin, 1 * waterlevel, 0, 0, MOD_SLIME);
 			}
 		}
 	}

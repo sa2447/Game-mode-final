@@ -642,6 +642,8 @@ typedef struct
 #define MZ_BLUEHYPERBLASTER 17
 #define MZ_PHALANX			18
 #define MZ_SILENCED			128		// bit flag ORed with one of the above numbers
+#define MZ_SPAZER    		128
+#define MZ_PLASMA			128
 
 //ROGUE
 #define MZ_ETF_RIFLE		30
