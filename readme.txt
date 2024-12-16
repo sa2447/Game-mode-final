@@ -1,29 +1,44 @@
+Welcome to my Metroid Mod.
 
-This is the complete source code for Quake 2, version 3.19, buildable with
-visual C++ 6.0.  The linux version should be buildable, but we haven't
-tested it for the release.
+This mod contains Weapons and Features from various metroid games listed below
 
-The code is all licensed under the terms of the GPL (gnu public license).  
-You should read the entire license, but the gist of it is that you can do 
-anything you want with the code, including sell your new version.  The catch 
-is that if you distribute new binary versions, you are required to make the 
-entire source code available for free to everyone.
+Weapons:
+Paralyzer(Blaster) - heals and deals
+ArmCannon - Basic Fire, upgradable
+Ball Bomb - power bomb
+Missile Launcher - 5 Round Burst
+Battle Hammer - Melee
+Magmaul - Hurt yourself cause the gun sucks
+Judicator - Low Damage, High Knockback
+Volt Driver - (Homing and extreme rapid fire)
+Imperialist - Zoom function
+Shockcoil - lightning
 
-The primary intent of this release is for entertainment and educational 
-purposes, but the GPL does allow commercial exploitation if you obey the 
-full license.  If you want to do something commercial and you just can't bear 
-to have your source changes released, we could still negotiate a separate 
-license agreement (for $$$), but I would encourage you to just live with the 
-GPL.
+Upgrades:
+Spazer beam - fires 3 of current beam(compatible with plasma and long)
+Long beam - adds more damage for all M.guns, stacks (compatible with plasma/spazer)
+Plasma beam - turns armcannon into pierce weapon(compatible with spazer/long)
+Omega beam - fires (almost) everything at once(compatible with long not spazer/plasma)
+Gravity Suit - Prevents damage from Slime/Lava and gives infinite breath
 
-All of the Q2 data files remain copyrighted and licensed under the 
-original terms, so you cannot redistribute data from the original game, but if 
-you do a true total conversion, you can create a standalone game based on 
-this code.
+Samus Abilities:
+Ball - Smaller and faster (cmd ball, hotkey p) - in progress
+Drain - deal damage (cmd drain, hotkey k)
+Energy Tank - health restore (cmd energy, hotkey j)
+Missile Tank - fire a missile ( cmd emmi, hotkey o)
+Phantom Cloak - Toggle Invisiblity (cmd cloak, hotkey h) - in progess
 
-Thanks to Robert Duffy for doing the grunt work of building this release.
 
-John Carmack
-Id Software
 
+Movement Abilities:
+Bomb Jump - bounce from own bombs - in progess
+Speed Boost - Speedset to fast and deal damage - in progess
+Space Jump - Jump higher - in progess
+Screw attack - infinite jump and damage - in progess
+Grapple hook - hook to walls and get pulled toward them - in progess
+
+
+Ball Mode Camera: - in progess
+
+In order to play my mod download the files and move them into a new folder in your quake 2. When in quake just type set game *folder name*
 
