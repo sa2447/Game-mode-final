@@ -26,6 +26,8 @@ static qboolean	is_quad;
 static byte		is_silenced;
 static byte		is_spazer;
 static byte		is_plasma;
+static byte		is_long;
+static byte		is_omega;
 
 
 void weapon_grenade_fire (edict_t *ent, qboolean held);
@@ -307,6 +309,16 @@ void Think_Weapon (edict_t *ent)
 			is_plasma = MZ_PLASMA;
 		else
 			is_plasma = 0;
+
+		if (ent->client->long_shots)
+			is_long = MZ_LONG;
+		else
+			is_long = 0;
+
+		if (ent->client->o_shots)
+			is_omega = MZ_OMEGA;
+		else
+			is_omega = 0;
 
 		ent->client->pers.weapon->weaponthink (ent);
 	}
@@ -842,23 +854,9 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 
 	if (is_quad) {
 		damage *= 4;
-
-		fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
-
-		start[0] += right[0] * 6;
-		start[1] += right[1] * 6;
-		start[2] += right[2] * 6;
-
-		fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
-
-		start[0] -= right[0] * 12;
-		start[1] -= right[1] * 12;
-		start[2] -= right[2] * 12;
-
-		fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
 	}
 
-	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
+	fire_para (ent, start, forward, damage, 1000, effect, hyper);
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -1488,8 +1486,12 @@ void ArmCannon_Fire(edict_t* ent, vec3_t g_offset, int damage, qboolean hyper, i
 	VectorScale(forward, -2, ent->client->kick_origin);
 	ent->client->kick_angles[0] = -1;
 
-	if (is_quad)
+	if (is_quad && !is_long)
 		damage *= 4;
+	if (!is_quad && is_long)
+		damage *= 8;
+	if (is_quad && is_long)
+		damage *= 32;
 
 	if (is_spazer && !is_plasma) {
 		
@@ -1529,11 +1531,15 @@ void ArmCannon_Fire(edict_t* ent, vec3_t g_offset, int damage, qboolean hyper, i
 		fire_plasma(ent, start, forward, 100, 1);
 
 	}
-	if(!is_plasma && !is_spazer)
+	if(!is_plasma && !is_spazer && !is_omega)
 	{
 
 		fire_armcannon(ent, start, forward, damage, 1000, effect, hyper);
 
+	}
+	if (is_omega)
+	{
+		fire_bfg(ent, start, forward, damage, 400, 1000);
 	}
 
 	
@@ -1570,3 +1576,805 @@ void Weapon_ArmCannon(edict_t* ent)
 
 	Weapon_Generic(ent, 4, 8, 52, 55, pause_frames, fire_frames, Weapon_ArmCannon_Fire);
 }
+
+//Missile Launcher
+
+void Weapon_missilelauncher_Fire(edict_t* ent)
+{
+	vec3_t	offset, start;
+	vec3_t	forward, right;
+	int		damage;
+	float	damage_radius;
+	int		radius_damage;
+
+	damage = 100 + (int)(random() * 20.0);
+	radius_damage = 120;
+	damage_radius = 120;
+
+	if (is_quad && !is_long)
+		damage *= 4;
+	if (!is_quad && is_long)
+		damage *= 8;
+	if (is_quad && is_long)
+		damage *= 32;
+
+	AngleVectors(ent->client->v_angle, forward, right, NULL);
+
+	VectorScale(forward, -2, ent->client->kick_origin);
+	ent->client->kick_angles[0] = -1;
+
+	VectorSet(offset, 8, 8, ent->viewheight - 8);
+	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+	fire_missilelauncher(ent, start, forward, damage, 300, damage_radius, radius_damage);
+
+	// send muzzle flash
+	gi.WriteByte(svc_muzzleflash);
+	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(MZ_ROCKET | is_silenced);
+	gi.multicast(ent->s.origin, MULTICAST_PVS);
+
+	ent->client->ps.gunframe++;
+
+	PlayerNoise(ent, start, PNOISE_WEAPON);
+
+	
+}
+
+void Weapon_MissileLauncher(edict_t* ent)
+{
+	static int	pause_frames[] = { 25, 33, 42, 50, 0 };
+	static int	fire_frames[] = { 5, 7, 9, 11, 0 };
+
+	Weapon_Generic(ent, 4, 12, 50, 54, pause_frames, fire_frames, Weapon_missilelauncher_Fire);
+}
+
+
+//Ball Bomb
+
+void weapon_ballbomb_fire(edict_t* ent, qboolean held)
+{
+
+	vec3_t	offset;
+	vec3_t	forward, right;
+	vec3_t	start;
+	int		damage = 1000;
+	float	timer;
+	int		speed;
+	float	radius;
+
+	radius = 1000;
+
+	if (is_quad && !is_long)
+		damage *= 4;
+	if (!is_quad && is_long)
+		damage *= 8;
+	if (is_quad && is_long)
+		damage *= 32;
+
+	VectorSet(offset, 8, 8, ent->viewheight - 8);
+	AngleVectors(ent->client->v_angle, forward, right, NULL);
+	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+
+	timer = ent->client->grenade_time - level.time;
+	speed = GRENADE_MINSPEED + (GRENADE_TIMER - timer) * ((GRENADE_MAXSPEED - GRENADE_MINSPEED) / GRENADE_TIMER);
+	fire_grenade(ent, start, forward, damage, speed, timer, radius);
+
+
+	ent->client->grenade_time = level.time + 1.0;
+
+	if (ent->deadflag || ent->s.modelindex != 255) // VWep animations screw up corpses
+	{
+		return;
+	}
+
+	if (ent->health <= 0)
+		return;
+
+	if (ent->client->ps.pmove.pm_flags & PMF_DUCKED)
+	{
+		ent->client->anim_priority = ANIM_ATTACK;
+		ent->s.frame = FRAME_crattak1 - 1;
+		ent->client->anim_end = FRAME_crattak3;
+	}
+	else
+	{
+		ent->client->anim_priority = ANIM_REVERSE;
+		ent->s.frame = FRAME_wave08;
+		ent->client->anim_end = FRAME_wave01;
+	}
+}
+
+void Weapon_BallBomb(edict_t* ent)
+{
+	if ((ent->client->newweapon) && (ent->client->weaponstate == WEAPON_READY))
+	{
+		ChangeWeapon(ent);
+		return;
+	}
+
+	if (ent->client->weaponstate == WEAPON_ACTIVATING)
+	{
+		ent->client->weaponstate = WEAPON_READY;
+		ent->client->ps.gunframe = 16;
+		return;
+	}
+
+	if (ent->client->weaponstate == WEAPON_READY)
+	{
+		if (((ent->client->latched_buttons | ent->client->buttons) & BUTTON_ATTACK))
+		{
+			ent->client->latched_buttons &= ~BUTTON_ATTACK;
+			
+				ent->client->ps.gunframe = 1;
+				ent->client->weaponstate = WEAPON_FIRING;
+				ent->client->grenade_time = 0;
+			
+			return;
+		}
+
+		if ((ent->client->ps.gunframe == 29) || (ent->client->ps.gunframe == 34) || (ent->client->ps.gunframe == 39) || (ent->client->ps.gunframe == 48))
+		{
+			if (rand() & 15)
+				return;
+		}
+
+		if (++ent->client->ps.gunframe > 48)
+			ent->client->ps.gunframe = 16;
+		return;
+	}
+
+	if (ent->client->weaponstate == WEAPON_FIRING)
+	{
+		if (ent->client->ps.gunframe == 5)
+			gi.sound(ent, CHAN_WEAPON, gi.soundindex("weapons/hgrena1b.wav"), 1, ATTN_NORM, 0);
+
+		if (ent->client->ps.gunframe == 11)
+		{
+			if (!ent->client->grenade_time)
+			{
+				ent->client->grenade_time = level.time + GRENADE_TIMER + 0.2;
+				ent->client->weapon_sound = gi.soundindex("weapons/hgrenc1b.wav");
+			}
+
+			// they waited too long, detonate it in their hand
+			if (!ent->client->grenade_blew_up && level.time >= ent->client->grenade_time)
+			{
+				ent->client->weapon_sound = 0;
+				weapon_ballbomb_fire(ent, true);
+				ent->client->grenade_blew_up = true;
+			}
+
+			if (ent->client->buttons & BUTTON_ATTACK)
+				return;
+
+			if (ent->client->grenade_blew_up)
+			{
+				if (level.time >= ent->client->grenade_time)
+				{
+					ent->client->ps.gunframe = 15;
+					ent->client->grenade_blew_up = false;
+				}
+				else
+				{
+					return;
+				}
+			}
+		}
+
+		if (ent->client->ps.gunframe == 12)
+		{
+			ent->client->weapon_sound = 0;
+			weapon_ballbomb_fire(ent, false);
+		}
+
+		if ((ent->client->ps.gunframe == 15) && (level.time < ent->client->grenade_time))
+			return;
+
+		ent->client->ps.gunframe++;
+
+		if (ent->client->ps.gunframe == 16)
+		{
+			ent->client->grenade_time = 0;
+			ent->client->weaponstate = WEAPON_READY;
+		}
+	}
+}
+
+
+//BattleHammer
+
+void weapon_battlehammer_fire(edict_t* ent)
+{
+	vec3_t		start;
+	vec3_t		forward, right;
+	vec3_t		offset;
+	int			damage;
+	int			kick;
+
+	if (deathmatch->value)
+	{	// normal damage is too extreme in dm
+		damage = 50;
+		kick = 100;
+	}
+	else
+	{
+		damage = 50;
+		kick = 100;
+	}
+
+	if (is_quad && !is_long)
+		damage *= 4;
+	if (!is_quad && is_long)
+		damage *= 8;
+	if (is_quad && is_long)
+		damage *= 32;
+
+	AngleVectors(ent->client->v_angle, forward, right, NULL);
+
+	VectorScale(forward, -3, ent->client->kick_origin);
+	ent->client->kick_angles[0] = -3;
+
+	VectorSet(offset, 0, 7, ent->viewheight - 8);
+	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+	fire_battlehammer(ent, start, forward, damage, kick);
+
+	// send muzzle flash
+	gi.WriteByte(svc_muzzleflash);
+	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(MZ_RAILGUN | is_silenced);
+	gi.multicast(ent->s.origin, MULTICAST_PVS);
+
+	ent->client->ps.gunframe++;
+	PlayerNoise(ent, start, PNOISE_WEAPON);
+
+	if (!((int)dmflags->value & DF_INFINITE_AMMO))
+		ent->client->pers.inventory[ent->client->ammo_index]--;
+}
+
+void Weapon_BattleHammer(edict_t* ent)
+{
+	static int	pause_frames[] = { 19, 32, 0 };
+	static int	fire_frames[] = { 5, 0 };
+
+	Weapon_Generic(ent, 4, 8, 52, 55, pause_frames, fire_frames, weapon_battlehammer_fire);
+}
+
+
+//Magmaul
+
+void Magmaul_Fire(edict_t* ent, vec3_t g_offset, int damage, qboolean hyper, int effect)
+{
+	vec3_t	forward, right;
+	vec3_t	start;
+	vec3_t	offset;
+
+
+	AngleVectors(ent->client->v_angle, forward, right, NULL);
+	VectorSet(offset, 24, 8, ent->viewheight - 8);
+	VectorAdd(offset, g_offset, offset);
+	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+
+	VectorScale(forward, -2, ent->client->kick_origin);
+	ent->client->kick_angles[0] = -1;
+
+	if (is_quad) {
+		damage *= 4;
+	}
+
+	fire_magmaul(ent, start, forward, damage, 1000, effect, hyper);
+
+	// send muzzle flash
+	gi.WriteByte(svc_muzzleflash);
+	gi.WriteShort(ent - g_edicts);
+	if (hyper)
+		gi.WriteByte(MZ_HYPERBLASTER | is_silenced);
+	else
+		gi.WriteByte(MZ_BLASTER | is_silenced);
+	gi.multicast(ent->s.origin, MULTICAST_PVS);
+
+	PlayerNoise(ent, start, PNOISE_WEAPON);
+}
+
+void Weapon_Magmaul_Fire(edict_t* ent)
+{
+	int		damage;
+
+	if (deathmatch->value)
+		damage = 10;
+	else
+		damage = 10;
+	Magmaul_Fire(ent, vec3_origin, damage, false, EF_BLASTER);
+	ent->client->ps.gunframe++;
+}
+
+void Weapon_Magmaul(edict_t* ent)
+{
+	static int	pause_frames[] = { 19, 32, 0 };
+	static int	fire_frames[] = { 5, 0 };
+
+	Weapon_Generic(ent, 4, 8, 52, 55, pause_frames, fire_frames, Weapon_Magmaul_Fire);
+}
+
+
+
+//Judicator
+
+void weapon_judicator_fire(edict_t* ent)
+{
+	vec3_t		start;
+	vec3_t		forward, right;
+	vec3_t		offset;
+	int			damage;
+	int			kick;
+
+	if (deathmatch->value)
+	{	// normal damage is too extreme in dm
+		damage = 5;
+		kick = 200;
+	}
+	else
+	{
+		damage = 5;
+		kick = 250;
+	}
+
+	if (is_quad && !is_long)
+		damage *= 4;
+	if (!is_quad && is_long)
+		damage *= 8;
+	if (is_quad && is_long)
+		damage *= 32;
+
+	AngleVectors(ent->client->v_angle, forward, right, NULL);
+
+	VectorScale(forward, -3, ent->client->kick_origin);
+	ent->client->kick_angles[0] = -3;
+
+	VectorSet(offset, 0, 7, ent->viewheight - 8);
+	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+	fire_rail(ent, start, forward, damage, 8000);
+
+	// send muzzle flash
+	gi.WriteByte(svc_muzzleflash);
+	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(MZ_RAILGUN | is_silenced);
+	gi.multicast(ent->s.origin, MULTICAST_PVS);
+
+	ent->client->ps.gunframe++;
+	PlayerNoise(ent, start, PNOISE_WEAPON);
+
+	
+}
+
+
+void Weapon_Judicator(edict_t* ent)
+{
+	static int	pause_frames[] = { 56, 0 };
+	static int	fire_frames[] = { 4, 0 };
+
+	Weapon_Generic(ent, 3, 18, 56, 61, pause_frames, fire_frames, weapon_judicator_fire);
+}
+
+
+//Volt Driver
+void voltdriver_fire(edict_t* ent, vec3_t g_offset, int damage, qboolean hyper, int effect)
+{
+	vec3_t	forward, right;
+	vec3_t	start;
+	vec3_t	offset;
+
+
+	AngleVectors(ent->client->v_angle, forward, right, NULL);
+	VectorSet(offset, 24, 8, ent->viewheight - 8);
+	VectorAdd(offset, g_offset, offset);
+	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+
+	VectorScale(forward, -2, ent->client->kick_origin);
+	ent->client->kick_angles[0] = -1;
+
+	if (is_quad && !is_long)
+		damage *= 4;
+	if (!is_quad && is_long)
+		damage *= 8;
+	if (is_quad && is_long)
+		damage *= 32;
+
+	fire_voltdriver(ent, start, forward, damage, 500, effect, hyper);
+
+	// send muzzle flash
+	gi.WriteByte(svc_muzzleflash);
+	gi.WriteShort(ent - g_edicts);
+	if (hyper)
+		gi.WriteByte(MZ_HYPERBLASTER | is_silenced);
+	else
+		gi.WriteByte(MZ_BLASTER | is_silenced);
+	gi.multicast(ent->s.origin, MULTICAST_PVS);
+
+	PlayerNoise(ent, start, PNOISE_WEAPON);
+}
+
+void Weapon_VoltDriver_Fire(edict_t* ent)
+{
+	int		damage;
+
+	if (deathmatch->value)
+		damage = 30;
+	else
+		damage = 20;
+	voltdriver_fire(ent, vec3_origin, damage, false, EF_BLASTER);
+	ent->client->ps.gunframe++;
+}
+
+void Weapon_VoltDriver(edict_t* ent)
+{
+	static int	pause_frames[] = { 19, 32, 0 };
+	static int	fire_frames[] = { 5, 0 };
+
+	Weapon_Generic(ent, 4, 8, 52, 55, pause_frames, fire_frames, voltdriver_fire);
+}
+
+
+
+//Imperialist
+void weapon_imperialist_fire(edict_t* ent)
+{
+	vec3_t		start;
+	vec3_t		forward, right;
+	vec3_t		offset;
+	int			damage;
+	int			kick;
+
+	if (deathmatch->value)
+	{	// normal damage is too extreme in dm
+		damage = 200;
+		kick = 200;
+	}
+	else
+	{
+		damage = 150;
+		kick = 250;
+	}
+
+	if (is_quad && !is_long)
+		damage *= 4;
+	if (!is_quad && is_long)
+		damage *= 8;
+	if (is_quad && is_long)
+		damage *= 32;
+
+	if (ent->client)
+		ent->client->ps.fov = 20;
+
+	AngleVectors(ent->client->v_angle, forward, right, NULL);
+
+	VectorScale(forward, -3, ent->client->kick_origin);
+	ent->client->kick_angles[0] = -3;
+
+	VectorSet(offset, 0, 7, ent->viewheight - 8);
+	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+	fire_rail(ent, start, forward, damage, kick);
+
+	// send muzzle flash
+	gi.WriteByte(svc_muzzleflash);
+	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(MZ_RAILGUN | is_silenced);
+	gi.multicast(ent->s.origin, MULTICAST_PVS);
+
+	ent->client->ps.gunframe++;
+	PlayerNoise(ent, start, PNOISE_WEAPON);
+
+	
+}
+
+
+void Weapon_Imperialist(edict_t* ent)
+{
+	static int	pause_frames[] = { 56, 0 };
+	static int	fire_frames[] = { 4, 0 };
+
+	Weapon_Generic(ent, 3, 18, 56, 61, pause_frames, fire_frames, weapon_imperialist_fire);
+}
+
+
+//Shock Coil
+
+void weapon_shockcoil_fire(edict_t* ent)
+{
+	vec3_t	offset, start;
+	vec3_t	forward, right;
+	int		damage;
+	float	damage_radius = 1000;
+
+	if (deathmatch->value)
+		damage = 200;
+	else
+		damage = 500;
+
+	if (ent->client->ps.gunframe == 9)
+	{
+		// send muzzle flash
+		gi.WriteByte(svc_muzzleflash);
+		gi.WriteShort(ent - g_edicts);
+		gi.WriteByte(MZ_BFG | is_silenced);
+		gi.multicast(ent->s.origin, MULTICAST_PVS);
+
+		ent->client->ps.gunframe++;
+
+		PlayerNoise(ent, ent->s.origin, PNOISE_WEAPON);
+		return;
+	}
+
+	
+
+	if (is_quad && !is_long)
+		damage *= 4;
+	if (!is_quad && is_long)
+		damage *= 8;
+	if (is_quad && is_long)
+		damage *= 32;
+
+	AngleVectors(ent->client->v_angle, forward, right, NULL);
+
+	VectorScale(forward, -2, ent->client->kick_origin);
+
+	// make a big pitch kick with an inverse fall
+	ent->client->v_dmg_pitch = -40;
+	ent->client->v_dmg_roll = crandom() * 8;
+	ent->client->v_dmg_time = level.time + DAMAGE_TIME;
+
+	VectorSet(offset, 8, 8, ent->viewheight - 8);
+	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+	fire_shockcoil(ent, start, forward, damage, 0, damage_radius);
+
+	ent->client->ps.gunframe++;
+
+	PlayerNoise(ent, start, PNOISE_WEAPON);
+
+	
+}
+
+void Weapon_Shockcoil(edict_t* ent)
+{
+	static int	pause_frames[] = { 39, 45, 50, 55, 0 };
+	static int	fire_frames[] = { 9, 17, 0 };
+
+	Weapon_Generic(ent, 8, 32, 55, 58, pause_frames, fire_frames, weapon_shockcoil_fire);
+}
+
+
+/*
+void GrappleDrawCable(edict_t* self)
+{
+	vec3_t	offset, start, end, f, r;
+	vec3_t	dir;
+	float	distance;
+
+	AngleVectors(self->owner->client->v_angle, f, r, NULL);
+	VectorSet(offset, 16, 16, self->owner->viewheight - 8);
+	P_ProjectSource(self->owner->client, self->owner->s.origin, offset, f, r, start);
+
+	VectorSubtract(start, self->owner->s.origin, offset);
+
+	VectorSubtract(start, self->s.origin, dir);
+	distance = VectorLength(dir);
+	// don't draw cable if close
+	if (distance < 64)
+		return;
+
+#if 0
+	if (distance > 256)
+		return;
+
+	// check for min/max pitch
+	vectoangles(dir, angles);
+	if (angles[0] < -180)
+		angles[0] += 360;
+	if (fabs(angles[0]) > 45)
+		return;
+
+	trace_t	tr; //!!
+
+	tr = gi.trace(start, NULL, NULL, self->s.origin, self, MASK_SHOT);
+	if (tr.ent != self) {
+		ResetGrapple(self);
+		return;
+	}
+#endif
+
+	// adjust start for beam origin being in middle of a segment
+//	VectorMA (start, 8, f, start);
+
+	VectorCopy(self->s.origin, end);
+	// adjust end z for end spot since the monster is currently dead
+//	end[2] = self->absmin[2] + self->size[2] / 2;
+
+	gi.WriteByte(svc_temp_entity);
+#if 1 //def USE_GRAPPLE_CABLE
+	gi.WriteByte(TE_GRAPPLE_CABLE);
+	gi.WriteShort(self->owner - g_edicts);
+	gi.WritePosition(self->owner->s.origin);
+	gi.WritePosition(end);
+	gi.WritePosition(offset);
+#else
+	gi.WriteByte(TE_MEDIC_CABLE_ATTACK);
+	gi.WriteShort(self - g_edicts);
+	gi.WritePosition(end);
+	gi.WritePosition(start);
+#endif
+	gi.multicast(self->s.origin, MULTICAST_PVS);
+}
+
+void GrapplePull(edict_t* self)
+{
+	vec3_t hookdir, v;
+	float vlen;
+
+	if (strcmp(self->owner->client->pers.weapon->classname, "weapon_grapple") == 0 &&
+		!self->owner->client->newweapon &&
+		self->owner->client->weaponstate != WEAPON_FIRING &&
+		self->owner->client->weaponstate != WEAPON_ACTIVATING) {
+		ResetGrapple(self);
+		return;
+	}
+
+	if (self->enemy) {
+		if (self->enemy->solid == SOLID_NOT) {
+			ResetGrapple(self);
+			return;
+		}
+		if (self->enemy->solid == SOLID_BBOX) {
+			VectorScale(self->enemy->size, 0.5, v);
+			VectorAdd(v, self->enemy->s.origin, v);
+			VectorAdd(v, self->enemy->mins, self->s.origin);
+			gi.linkentity(self);
+		}
+		else
+			VectorCopy(self->enemy->velocity, self->velocity);
+		if (self->enemy->takedamage &&
+			!CheckTeamDamage(self->enemy, self->owner)) {
+			float volume = 1.0;
+
+			if (self->owner->client->silencer_shots)
+				volume = 0.2;
+
+			T_Damage(self->enemy, self, self->owner, self->velocity, self->s.origin, vec3_origin, 1, 1, 0, MOD_GRAPPLE);
+			gi.sound(self, CHAN_WEAPON, gi.soundindex("weapons/grapple/grhurt.wav"), volume, ATTN_NORM, 0);
+		}
+		if (self->enemy->deadflag) { // he died
+			ResetGrapple(self);
+			return;
+		}
+	}
+
+	GrappleDrawCable(self);
+
+	if (self->owner->client->grapplestate > GRAPPLE_STATE_FLY) {
+		// pull player toward grapple
+		// this causes icky stuff with prediction, we need to extend
+		// the prediction layer to include two new fields in the player
+		// move stuff: a point and a velocity.  The client should add
+		// that velociy in the direction of the point
+		vec3_t forward, up;
+
+		AngleVectors(self->owner->client->v_angle, forward, NULL, up);
+		VectorCopy(self->owner->s.origin, v);
+		v[2] += self->owner->viewheight;
+		VectorSubtract(self->s.origin, v, hookdir);
+
+		vlen = VectorLength(hookdir);
+
+		if (self->owner->client->grapplestate == GRAPPLE_STATE_PULL &&
+			vlen < 64) {
+			float volume = 1.0;
+
+			if (self->owner->client->silencer_shots)
+				volume = 0.2;
+
+			self->owner->client->ps.pmove.pm_flags |= PMF_NO_PREDICTION;
+			gi.sound(self->owner, CHAN_RELIABLE + CHAN_WEAPON, gi.soundindex("weapons/grapple/grhang.wav"), volume, ATTN_NORM, 0);
+			self->owner->client->grapplestate = GRAPPLE_STATE_HANG;
+		}
+
+		VectorNormalize(hookdir);
+		VectorScale(hookdir, GRAPPLE_PULL_SPEED, hookdir);
+		VectorCopy(hookdir, self->owner->velocity);
+		SV_AddGravity(self->owner);
+	}
+}
+
+void GrappleFire(edict_t* ent, vec3_t g_offset, int damage, int effect)
+{
+	vec3_t	forward, right;
+	vec3_t	start;
+	vec3_t	offset;
+	float volume = 1.0;
+
+	if (ent->client->grapplestate > GRAPPLE_STATE_FLY)
+		return; // it's already out
+
+	AngleVectors(ent->client->v_angle, forward, right, NULL);
+	//	VectorSet(offset, 24, 16, ent->viewheight-8+2);
+	VectorSet(offset, 24, 8, ent->viewheight - 8 + 2);
+	VectorAdd(offset, g_offset, offset);
+	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+
+	VectorScale(forward, -2, ent->client->kick_origin);
+	ent->client->kick_angles[0] = -1;
+
+	if (ent->client->silencer_shots)
+		volume = 0.2;
+
+	gi.sound(ent, CHAN_RELIABLE + CHAN_WEAPON, gi.soundindex("weapons/grapple/grfire.wav"), volume, ATTN_NORM, 0);
+	FireGrapple(ent, start, forward, damage, GRAPPLE_SPEED, effect);
+
+#if 0
+	// send muzzle flash
+	gi.WriteByte(svc_muzzleflash);
+	gi.WriteShort(ent - g_edicts);
+	gi.WriteByte(MZ_BLASTER);
+	gi.multicast(ent->s.origin, MULTICAST_PVS);
+#endif
+
+	PlayerNoise(ent, start, PNOISE_WEAPON);
+}
+
+
+void Weapon_Grapple_Fire(edict_t* ent)
+{
+	int		damage;
+
+	damage = 10;
+	GrappleFire(ent, vec3_origin, damage, 0);
+	ent->client->ps.gunframe++;
+}
+
+void Weapon_Grapple(edict_t* ent)
+{
+	static int	pause_frames[] = { 10, 18, 27, 0 };
+	static int	fire_frames[] = { 6, 0 };
+	int prevstate;
+
+	// if the the attack button is still down, stay in the firing frame
+	if ((ent->client->buttons & BUTTON_ATTACK) &&
+		ent->client->weaponstate == WEAPON_FIRING &&
+		ent->client->grapple)
+		ent->client->ps.gunframe = 9;
+
+	if (!(ent->client->buttons & BUTTON_ATTACK) &&
+		ent->client->grapple) {
+		ResetGrapple(ent->client->grapple);
+		if (ent->client->weaponstate == WEAPON_FIRING)
+			ent->client->weaponstate = WEAPON_READY;
+	}
+
+
+	if (ent->client->newweapon &&
+		ent->client->grapplestate > GRAPPLE_STATE_FLY &&
+		ent->client->weaponstate == WEAPON_FIRING) {
+		// he wants to change weapons while grappled
+		ent->client->weaponstate = WEAPON_DROPPING;
+		ent->client->ps.gunframe = 32;
+	}
+
+	prevstate = ent->client->weaponstate;
+	Weapon_Generic(ent, 5, 9, 31, 36, pause_frames, fire_frames,
+		Weapon_Grapple_Fire);
+
+	// if we just switched back to grapple, immediately go to fire frame
+	if (prevstate == WEAPON_ACTIVATING &&
+		ent->client->weaponstate == WEAPON_READY &&
+		ent->client->grapplestate > GRAPPLE_STATE_FLY) {
+		if (!(ent->client->buttons & BUTTON_ATTACK))
+			ent->client->ps.gunframe = 9;
+		else
+			ent->client->ps.gunframe = 5;
+		ent->client->weaponstate = WEAPON_FIRING;
+	}
+}
+
+void PlayerResetGrapple(edict_t* ent)
+{
+	if (ent->client && ent->client->grapple)
+		ResetGrapple(ent->client->grapple);
+}
+*/

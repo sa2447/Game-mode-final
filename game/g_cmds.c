@@ -899,6 +899,71 @@ void Cmd_PlayerList_f(edict_t *ent)
 	gi.cprintf(ent, PRINT_HIGH, "%s", text);
 }
 
+void Cmd_Drain_f(edict_t* ent)
+{
+	vec3_t dir;
+
+	if (!ent)
+		return;
+
+	AngleVectors(ent->client->v_angle, dir, NULL, NULL);
+
+	fire_drain(ent, ent->s.origin, dir, 150, 0);
+	gi.bprintf(PRINT_MEDIUM, "Draining\n");
+}
+
+void Cmd_Energy_f(edict_t* ent)
+{
+	if (!ent)
+		return;
+
+	ent->health = ent->max_health;
+	gi.bprintf(PRINT_MEDIUM, "Someone Placed their Samus Amibo on your switch\n");
+}
+
+//Credit JohnRittenhouse for cloaking
+void Cmd_Cloak_f(edict_t* ent)
+{
+	if (!ent)
+		return;
+
+	if (ent->svflags & SVF_NOCLIENT)
+	{
+		gi.bprintf(PRINT_MEDIUM, "You are visible get to cover\n");
+		ent->svflags -= SVF_NOCLIENT;
+	}
+	else
+	{
+		gi.bprintf(PRINT_MEDIUM, "You are invisible\n");
+		ent->svflags |= SVF_NOCLIENT; 
+	}
+
+
+}
+
+void Cmd_Emmi_f(edict_t* ent)
+{
+	vec3_t dir;
+	
+
+	if (!ent)
+		return;
+	AngleVectors(ent->client->v_angle, dir, NULL, NULL);
+
+	gi.bprintf(PRINT_MEDIUM, "Someone Placed their E.M.M.I Amibo on your switch, enjoy the free... missile?\n");
+	fire_missilelauncher(ent, ent->s.origin, dir, 100, 100, 100, 50);
+
+}
+
+void Cmd_Ball_f(edict_t* ent)
+{
+	pmove_t* pm;
+	gi.bprintf(PRINT_MEDIUM, "You are a ball now trust me\n");
+	pm->s.pm_type == PMF_DUCKED;
+	
+
+}
+
 
 /*
 =================
@@ -987,6 +1052,16 @@ void ClientCommand (edict_t *ent)
 		Cmd_Wave_f (ent);
 	else if (Q_stricmp(cmd, "playerlist") == 0)
 		Cmd_PlayerList_f(ent);
+	else if (Q_stricmp(cmd, "drain") == 0)
+		Cmd_Drain_f(ent);
+	else if (Q_stricmp(cmd, "energy") == 0)
+		Cmd_Energy_f(ent);
+	else if (Q_stricmp(cmd, "cloak") == 0)
+		Cmd_Cloak_f(ent);
+	else if (Q_stricmp(cmd, "emmi") == 0)
+		Cmd_Emmi_f(ent);
+	else if (Q_stricmp(cmd, "ball") == 0)
+		Cmd_Ball_f(ent);
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }

@@ -324,8 +324,8 @@ void HelpComputer (edict_t *ent)
 		"xv 50 yv 172 string2 \"%3i/%3i     %i/%i       %i/%i\" ", 
 		sk,
 		level.level_name,
-		game.helpmessage1,
-		game.helpmessage2,
+		"2 - Armcannon, 3 - Powerbomb, 4 - Missile Launcher, \n 5 - BattleHammer, 6 - Magmaul, 7 - Judicator, \n 8 - Vold Driver, 9 - Imperialist, 0 - Shockcoil",
+		"z - SpazerBeam, x -  Plasma Beam, c - Long Beam, v - Omega Beam, b - Gravity Suit \n k - drain, j - energy, h-cloak, o-emmi support, p-ball",
 		level.killed_monsters, level.total_monsters, 
 		level.found_goals, level.total_goals,
 		level.found_secrets, level.total_secrets);

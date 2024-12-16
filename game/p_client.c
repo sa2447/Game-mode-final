@@ -616,10 +616,58 @@ void InitClientPersistant (gclient_t *client)
 	client->pers.selected_item = ITEM_INDEX(item);
 	client->pers.inventory[client->pers.selected_item] = 1;
 
-	/* Start with Metroid items */ 
+	/* Start with Metroid items */
 	item = FindItem("ArmCannon");
 	client->pers.selected_item = ITEM_INDEX(item);
-	client->pers.inventory[client->pers.selected_item] = 1;
+	client->pers.inventory[client->pers.selected_item] = 2;
+
+	item = FindItem("Ball Bomb");
+	client->pers.selected_item = ITEM_INDEX(item);
+	client->pers.inventory[client->pers.selected_item] = 3;
+
+	item = FindItem("Missile Launcher");
+	client->pers.selected_item = ITEM_INDEX(item);
+	client->pers.inventory[client->pers.selected_item] = 4;
+
+	item = FindItem("Battle Hammer");
+	client->pers.selected_item = ITEM_INDEX(item);
+	client->pers.inventory[client->pers.selected_item] = 5;
+
+	item = FindItem("Magmaul");
+	client->pers.selected_item = ITEM_INDEX(item);
+	client->pers.inventory[client->pers.selected_item] = 6;
+
+	item = FindItem("Judicator");
+	client->pers.selected_item = ITEM_INDEX(item);
+	client->pers.inventory[client->pers.selected_item] = 7;
+
+	item = FindItem("Volt Driver");
+	client->pers.selected_item = ITEM_INDEX(item);
+	client->pers.inventory[client->pers.selected_item] = 8;
+
+	item = FindItem("Imperialist");
+	client->pers.selected_item = ITEM_INDEX(item);
+	client->pers.inventory[client->pers.selected_item] = 9;
+
+	item = FindItem("Shockcoil");
+	client->pers.selected_item = ITEM_INDEX(item);
+	client->pers.inventory[client->pers.selected_item] = 10;
+
+	//item = FindItem("Spazer Beam");
+	//client->pers.selected_item = ITEM_INDEX(item);
+	//client->pers.inventory[client->pers.selected_item] = 10;
+
+	//item = FindItem("Plasma Beam");
+	//client->pers.selected_item = ITEM_INDEX(item);
+	//client->pers.inventory[client->pers.selected_item] = 11;
+
+	//item = FindItem("Gravity Suit");
+	//client->pers.selected_item = ITEM_INDEX(item);
+	//client->pers.inventory[client->pers.selected_item] = 12;
+
+	//item = FindItem("Long Beam");
+	//client->pers.selected_item = ITEM_INDEX(item);
+	//client->pers.inventory[client->pers.selected_item] = 13;
 	
 
 

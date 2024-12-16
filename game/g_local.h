@@ -81,6 +81,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define BODY_QUEUE_SIZE		8
 
+#define GRAPPLE_SPEED					650 // speed of grapple in flight
+#define GRAPPLE_PULL_SPEED				650	// speed player is pulled at
+
+typedef enum {
+	GRAPPLE_STATE_FLY,
+	GRAPPLE_STATE_PULL,
+	GRAPPLE_STATE_HANG
+} grapplestate_t;
+
+
 typedef enum
 {
 	DAMAGE_NO,
@@ -195,7 +205,8 @@ MOVETYPE_STEP,			// gravity, special edge handling
 MOVETYPE_FLY,
 MOVETYPE_TOSS,			// gravity
 MOVETYPE_FLYMISSILE,	// extra size to monsters
-MOVETYPE_BOUNCE
+MOVETYPE_BOUNCE,
+MOVETYPE_RICOCHET,   
 } movetype_t;
 
 
@@ -230,6 +241,7 @@ typedef struct
 #define WEAP_HYPERBLASTER		9 
 #define WEAP_RAILGUN			10
 #define WEAP_BFG				11
+#define WEAP_GRAPPLE			12
 
 typedef struct gitem_s
 {
@@ -498,6 +510,8 @@ extern	int	body_armor_index;
 #define MOD_TRIGGER_HURT	31
 #define MOD_HIT				32
 #define MOD_TARGET_BLASTER	33
+#define MOD_GRAPPLE			34
+
 #define MOD_FRIENDLY_FIRE	0x8000000
 
 extern	int	meansOfDeath;
@@ -962,7 +976,12 @@ struct gclient_s
 
 	int spazer_shots;
 	int plasma_shots;
+	int long_shots;
+	int o_shots;
 	float suit_check;
+	int grapplestate;
+	int grapplereleasetime;
+	void *grapple;
 };
 
 
@@ -1113,5 +1132,6 @@ struct edict_s
 	// common data blocks
 	moveinfo_t		moveinfo;
 	monsterinfo_t	monsterinfo;
+
 };
 

@@ -37,6 +37,15 @@ void Weapon_Railgun (edict_t *ent);
 void Weapon_BFG (edict_t *ent);
 
 void Weapon_ArmCannon(edict_t* ent);
+void Weapon_MissileLauncher(edict_t* ent);
+void Weapon_BattleHammer(edict_t* ent);
+void Weapon_Imperialist(edict_t* ent);
+void Weapon_Magmaul(edict_t* ent);
+void Weapon_VoltDriver(edict_t* ent);
+void Weapon_Judicator(edict_t* ent);
+void Weapon_Shockcoil(edict_t* ent);
+void Weapon_BallBomb(edict_t* ent);
+// void Weapon_Grapple(edict_t* ent);
 
 gitem_armor_t jacketarmor_info	= { 25,  50, .30, .00, ARMOR_JACKET};
 gitem_armor_t combatarmor_info	= { 50, 100, .60, .30, ARMOR_COMBAT};
@@ -47,6 +56,7 @@ static int	combat_armor_index;
 static int	body_armor_index;
 static int	power_screen_index;
 static int	power_shield_index;
+
 
 #define HEALTH_IGNORE_MAX	1
 #define HEALTH_TIMED		2
@@ -388,6 +398,7 @@ void Use_Spazer(edict_t* ent, gitem_t* item)
 	ent->client->pers.inventory[ITEM_INDEX(item)]--;
 	ValidateSelectedItem(ent);
 	ent->client->spazer_shots += 1;
+	gi.bprintf(PRINT_MEDIUM, "Spazer Beam Active\n");
 }
 
 void Use_Plasma(edict_t* ent, gitem_t* item)
@@ -395,6 +406,7 @@ void Use_Plasma(edict_t* ent, gitem_t* item)
 	ent->client->pers.inventory[ITEM_INDEX(item)]--;
 	ValidateSelectedItem(ent);
 	ent->client->plasma_shots += 1;
+	gi.bprintf(PRINT_MEDIUM, "Plasma Beam Active\n");
 }
 
 void Use_Gravsuit(edict_t* ent, gitem_t* item)
@@ -403,6 +415,27 @@ void Use_Gravsuit(edict_t* ent, gitem_t* item)
 	ValidateSelectedItem(ent);
 
 	ent->client->suit_check += 1;
+	gi.bprintf(PRINT_MEDIUM, "Gravity Suit Active\n");
+}
+
+void Use_Long(edict_t* ent, gitem_t* item)
+{
+	ent->client->pers.inventory[ITEM_INDEX(item)]--;
+	ValidateSelectedItem(ent);
+
+	ent->client->long_shots += 1;
+	gi.bprintf(PRINT_MEDIUM, "Long Beam Active\n");
+}
+
+void Use_Omega(edict_t* ent, gitem_t* item)
+{
+	ent->client->pers.inventory[ITEM_INDEX(item)]--;
+	ValidateSelectedItem(ent);
+
+	ent->client->o_shots += 1;
+	ent->client->spazer_shots = 0;
+	ent->client->plasma_shots = 0;
+	gi.bprintf(PRINT_MEDIUM, "Omega Beam Active\n");
 }
 
 
@@ -1578,6 +1611,8 @@ always owned, never in the world
 		Upgradable arm cannon intended to be the main weapon
 		*/
 
+	//Arm Cannon
+
 	{
 		"weapon_armcannon",
 		NULL,
@@ -1598,7 +1633,206 @@ always owned, never in the world
 		"weapons/blastf1a.wav misc/lasfly.wav"
 	},
 
+	//Missile Launcher
 
+	{
+		"weapon_missilelauncher",
+		NULL,
+		Use_Weapon,
+		NULL,
+		Weapon_MissileLauncher,
+		"misc/w_pkup.wav",
+		"models/weapons/g_rocket/tris.md2", EF_ROTATE,
+		"models/weapons/v_rocket/tris.md2",
+		/* icon */		"w_rlauncher",
+		/* pickup */	"Missile Launcher",
+		0,
+		0,
+		NULL,
+		IT_WEAPON,
+		NULL,
+		0,
+		"weapons/blastf1a.wav misc/lasfly.wav"
+	},
+
+	//Ball Bomb
+
+	{
+		"weapon_ballbomb",
+		NULL,
+		Use_Weapon,
+		NULL,
+		Weapon_BallBomb,
+		"misc/w_pkup.wav",
+		"models/items/ammo/grenades/medium/tris.md2", EF_ROTATE,
+		"models/weapons/v_handgr/tris.md2",
+		/* icon */		"a_grenades",
+		/* pickup */	"Ball Bomb",
+		0,
+		0,
+		NULL,
+		IT_WEAPON,
+		NULL,
+		0,
+		"weapons/blastf1a.wav misc/lasfly.wav"
+	},
+
+	//Battlehammer
+
+	{
+		"weapon_battlehammer",
+		NULL,
+		Use_Weapon,
+		NULL,
+		Weapon_BattleHammer,
+		"misc/w_pkup.wav",
+		"models/weapons/grapple/tris.md2", EF_ROTATE,
+		"models/weapons/grapple/tris.md2",
+		/* icon */		"w_shotgun",
+		/* pickup */	"Battle Hammer",
+		0,
+		0,
+		NULL,
+		IT_WEAPON,
+		NULL,
+		0,
+		"weapons/blastf1a.wav misc/lasfly.wav"
+	},
+
+	//Magmaul
+
+	{
+		"weapon_magmaul",
+		NULL,
+		Use_Weapon,
+		NULL,
+		Weapon_Magmaul,
+		"misc/w_pkup.wav",
+		"models/weapons/g_shotg2/tris.md2", EF_ROTATE,
+		"models/weapons/v_shotg2/tris.md2",
+		/* icon */		"w_sshotgun",
+		/* pickup */	"Magmaul",
+		0,
+		0,
+		NULL,
+		IT_WEAPON,
+		NULL,
+		0,
+		"weapons/blastf1a.wav misc/lasfly.wav"
+	},
+
+	//Judicator
+
+	{
+		"weapon_judicator",
+		NULL,
+		Use_Weapon,
+		NULL,
+		Weapon_Judicator,
+		"misc/w_pkup.wav",
+		"models/weapons/g_hyperb/tris.md2", EF_ROTATE,
+		"models/weapons/v_hyperb/tris.md2",
+		/* icon */		"w_railgun",
+		/* pickup */	"Judicator",
+		0,
+		0,
+		NULL,
+		IT_WEAPON,
+		NULL,
+		0,
+		"weapons/blastf1a.wav misc/lasfly.wav"
+	},
+
+	//Volt Driver
+
+	{
+		"weapon_voltdriver",
+		NULL,
+		Use_Weapon,
+		NULL,
+		Weapon_VoltDriver,
+		"misc/w_pkup.wav",
+		"models/weapons/g_machn/tris.md2", EF_ROTATE,
+		"models/weapons/v_machn/tris.md2",
+		/* icon */		"w_machinegun",
+		/* pickup */	"Volt Driver",
+		0,
+		0,
+		NULL,
+		IT_WEAPON,
+		NULL,
+		0,
+		"weapons/blastf1a.wav misc/lasfly.wav"
+	},
+
+	//Imperialist
+
+	{
+		"weapon_imperialist",
+		NULL,
+		Use_Weapon,
+		NULL,
+		Weapon_Imperialist,
+		"misc/w_pkup.wav",
+		"models/weapons/g_hyperb/tris.md2", EF_ROTATE,
+		"models/weapons/v_hyperb/tris.md2",
+		/* icon */		"w_hyperblaster",
+		/* pickup */	"Imperialist",
+		0,
+		0,
+		NULL,
+		IT_WEAPON,
+		NULL,
+		0,
+		"weapons/blastf1a.wav misc/lasfly.wav"
+	},
+
+	//Shockcoil
+
+	{
+		"weapon_shockcoil",
+		NULL,
+		Use_Weapon,
+		NULL,
+		Weapon_Shockcoil,
+		"misc/w_pkup.wav",
+		"models/weapons/g_bfg/tris.md2", EF_ROTATE,
+		"models/weapons/v_bfg/tris.md2",
+		/* icon */		"w_bfg",
+		/* pickup */	"Shockcoil",
+		0,
+		0,
+		NULL,
+		IT_WEAPON,
+		NULL,
+		0,
+		"weapons/blastf1a.wav misc/lasfly.wav"
+	},
+
+
+
+	
+	//{
+		//"weapon_grapple",
+		//NULL,
+		//Use_Weapon,
+		//NULL,
+		//Weapon_Grapple,
+		//"misc/w_pkup.wav",
+		//NULL, 0,
+		//"models/weapons/grapple/tris.md2", 
+	//	/* icon */		"w_railgun",
+	//	/* pickup */	"Grapple",
+	//			0,
+	//			0,
+	//			NULL,
+	//			IT_WEAPON,
+	//			WEAP_GRAPPLE,
+	//			NULL,
+	//			0,
+	//			/* precache */ "weapons/grapple/grfire.wav weapons/grapple/grpull.wav weapons/grapple/grhang.wav weapons/grapple/grreset.wav weapons/grapple/grhit.wav"
+//	},
+	
 
 	
 
@@ -1877,6 +2111,48 @@ Metroid Powerups
 		NULL,
 		/* icon */		"p_quad",
 		/* pickup */	"Plasma Beam",
+		/* width */		2,
+		60,
+		NULL,
+		IT_POWERUP,
+		0,
+		NULL,
+		0,
+		/* precache */ "items/damage.wav items/damage2.wav items/damage3.wav"
+},
+
+{
+		"item_long",
+		Pickup_Powerup,
+		Use_Long,
+		Drop_General,
+		NULL,
+		"items/pkup.wav",
+		"models/items/quaddama/tris.md2", EF_ROTATE,
+		NULL,
+		/* icon */		"p_quad",
+		/* pickup */	"Long Beam",
+		/* width */		2,
+		60,
+		NULL,
+		IT_POWERUP,
+		0,
+		NULL,
+		0,
+		/* precache */ "items/damage.wav items/damage2.wav items/damage3.wav"
+},
+
+{
+		"item_omega",
+		Pickup_Powerup,
+		Use_Omega,
+		Drop_General,
+		NULL,
+		"items/pkup.wav",
+		"models/items/quaddama/tris.md2", EF_ROTATE,
+		NULL,
+		/* icon */		"p_quad",
+		/* pickup */	"Omega Beam",
 		/* width */		2,
 		60,
 		NULL,
